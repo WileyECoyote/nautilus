@@ -948,6 +948,11 @@ do_cmdline_sanity_checks (NautilusApplication *self,
 static void
 do_perform_self_checks (int *exit_status)
 {
+   /* initialize preferences and create the global GSettings objects */
+    nautilus_global_preferences_init ();
+
+    /* Create self-contained settings interface object */
+    nautilus_settings_perpetuate();
 
 #ifndef NAUTILUS_OMIT_SELF_CHECK
 	/* Run the checks (each twice) for nautilus and libnautilus-private. */

@@ -1,0 +1,5 @@
+2016-07-24 Wiley E. Hill <wileyhill@gmail.com>
+
+    * src/nautilus-application.c: Initialize preferences and perpetuate
+      the settings in do_perform_self_checks so nautilus --check does
+      no seg-fault.
