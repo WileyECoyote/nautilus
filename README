@@ -1,4 +1,43 @@
-This is Nautilus, the file manager for the GNOME desktop.
+This is the Rampage version of Nautilus, the file manager.
+
+Preface
+============
+
+This is yet another version of the Nautilus file manager, this one is
+like no other. The orginal source was started as a fork from nautilus
+version 3.4.2, which included the path in each pane and other features
+missing from new versions. File managers installed with non-gnome desktop
+environments were unacceptable. I wanted My Nautilus, but not to provide
+a "desktop" just as a file manager. Using the "no-desktop" switch was
+clumbersome, so I began hacking using the "best" semi-stable version.
+Two months later the first edition of the Nautilus Rampage was born.
+
+This is a file Manager only; the Ramapge edition does not provide a
+desktop. The notion of the system's file manager doubling as a Desktop
+provider was an ill-concieved idea, copied from MS windows by Eazel,
+aka ex-apples, in a failed attempt to monetizing online services to be
+offered through Nautilus, i.e. pushing advertising directly onto user's
+Desktop. About the same time, MS was getting beat-up by the DOJ and
+backed-offed on their approach. The idea of using a file manager as a
+Desktop provider has since propagated on the Linux platform.
+
+Other features of the Rampage edition include:
+
+   The location of Path is user configuable and can be displayed either
+   seperately in each pane like the old nautilus or in the toolbar like
+   newer versions (requires a restart).
+
+   The sidebar can be toggle between a tree-view or a places-view.
+
+   The zoom can be adjusted for each pane.
+
+   The tree-view and file panes have independent configuable tool-tips
+   with adjustable time-outs.
+
+   The Rampage edition has more configuable options than other nautilus
+   variants.
+
+   Builds with Gtk+-2.0 and glib v2.32.
 
 Installation
 ============
@@ -23,9 +62,5 @@ http://mail.gnome.org/mailman/listinfo/nautilus-list
 How to report bugs
 ==================
 
-Bugs should be reported to the GNOME bug tracking system
-(http://bugzilla.gnome.org), in the "nautilus" product.
-
-Please read the following page on how to prepare a useful bug report:
-http://bugzilla.gnome.org/bug-HOWTO.html
+Bugs should be reported to: wileyhill@gmail.com
 
