@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/apps/nautilus">
+    <file compressed="true">nautilus-bookmarks-window-ui.xml</file>
+    <file>nautilus-desktop-icon-view-ui.xml</file>
+    <file>nautilus-directory-view-ui.xml</file>
+    <file compressed="true">nautilus-preferences-ui.xml</file>
+    <file>nautilus-icon-view-ui.xml</file>
+    <file>nautilus-list-view-ui.xml</file>
+    <file>nautilus-shell-ui.xml</file>
+    <file>nautilus-statusbar-ui.xml</file>
+    <file>nautilus-toolbar-ui.xml</file>
+    <file alias="icons/thumbnail_frame.png">../icons/thumbnail_frame.png</file>
+    <file alias="icons/knob.png">../icons/knob.png</file>
+  </gresource>
+</gresources>
