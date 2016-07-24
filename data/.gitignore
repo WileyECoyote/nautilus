@@ -1,0 +1,6 @@
+apps.Nautilus.service
+nautilus.desktop
+nautilus.xml
+nautilus-autorun-software.desktop
+nautilus-autostart.desktop
+org.freedesktop.FileManager1.service
