@@ -180,7 +180,7 @@ static void     nautilus_file_info_iface_init         (NautilusFileInfoIface *if
 
 static _Bool update_info_and_name                     (NautilusFile          *file,
                                                        GFileInfo             *info);
-static const char *nautilus_file_peek_display_name   (NautilusFile *file);
+
 static const char *nautilus_file_peek_display_name_collation_key (NautilusFile *file);
 static void file_mount_unmounted                      (GMount *mount,  void *data);
 static void metadata_hash_free                        (GHashTable *hash);
@@ -3874,7 +3874,7 @@ nautilus_file_peek_display_name_collation_key (NautilusFile *file)
 	return res;
 }
 
-static const char *
+const char *
 nautilus_file_peek_display_name (NautilusFile *file)
 {
 	const char *name;
