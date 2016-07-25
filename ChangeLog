@@ -1,3 +1,8 @@
+2016-07-25 Wiley E. Hill <wileyhill@gmail.com>
+
+    * src/nautilus-list-view.c: Define ListModel as list_view->details->model
+      and substitute to shorten line lengths.
+
 2016-07-24 Wiley E. Hill <wileyhill@gmail.com>
 
     * src/nautilus-application.c: Initialize preferences and perpetuate

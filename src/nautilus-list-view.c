@@ -71,6 +71,7 @@
 
 /* These are line-shorten'r and only apply with this file */
 #define ClickPolicy view->details->click_policy
+#define ListModel   list_view->details->model
 #define ListTree    list_view->details->tree_view
 #define TreeView    view->details->tree_view
 #define ZoomLevel   list_view->details->zoom_level
@@ -656,14 +657,14 @@ query_tooltip_callback (GtkWidget  *widget, int x, int y, _Bool kb_mode,
         GtkTreeIter   iter;
         NautilusFile *file;
         GtkTreePath  *path = NULL;
-        GtkTreeModel *model = GTK_TREE_MODEL (list_view->details->model);
+        GtkTreeModel *model = GTK_TREE_MODEL (ListModel);
 
         if (gtk_tree_view_get_tooltip_context (GTK_TREE_VIEW (widget), &x, &y,
                                                kb_mode,
                                                &model, &path, &iter)) {
 
             if (!gtk_tree_view_is_blank_at_pos (GTK_TREE_VIEW (widget), x, y, NULL, NULL, NULL, NULL)) {
-                gtk_tree_model_get (GTK_TREE_MODEL (list_view->details->model),
+                gtk_tree_model_get (GTK_TREE_MODEL (ListModel),
                                     &iter,
                                     NAUTILUS_LIST_MODEL_FILE_COLUMN, &file,
                                     -1);
@@ -1302,15 +1303,16 @@ list_view_reveal_selection (NautilusView *view)
 
   /* Make sure at least one of the selected items is scrolled into view */
   if (selection != NULL) {
+
     NautilusListView *list_view;
-    NautilusFile *file;
-    GtkTreeIter iter;
-    GtkTreePath *path;
+    NautilusFile     *file;
+    GtkTreePath      *path;
+    GtkTreeIter       iter;
 
     list_view = NAUTILUS_LIST_VIEW (view);
     file = selection->data;
-    if (nautilus_list_model_get_first_iter_for_file (list_view->details->model, file, &iter)) {
-      path = gtk_tree_model_get_path (GTK_TREE_MODEL (list_view->details->model), &iter);
+    if (nautilus_list_model_get_first_iter_for_file (ListModel, file, &iter)) {
+      path = gtk_tree_model_get_path (GTK_TREE_MODEL (ListModel), &iter);
 
       gtk_tree_view_scroll_to_cell (ListTree, path, NULL, FALSE, 0.0, 0.0);
 
@@ -1694,12 +1696,12 @@ column_header_menu_disable_sort (GtkMenuItem *menu_item,
 {
     _Bool active = gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (menu_item));
 
-    nautilus_list_model_set_temporarily_disable_sort (list_view->details->model, active);
+    nautilus_list_model_set_temporarily_disable_sort (ListModel, active);
 }
 
 static _Bool
-column_header_clicked (GtkWidget *column_button,
-                       GdkEventButton *event,
+column_header_clicked (GtkWidget        *column_button,
+                       GdkEventButton   *event,
                        NautilusListView *list_view)
 {
 	NautilusFile *file;
@@ -1791,7 +1793,7 @@ column_header_clicked (GtkWidget *column_button,
     gtk_menu_shell_append (GTK_MENU_SHELL (menu), menu_item);
 
     gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (menu_item),
-                                    nautilus_list_model_get_temporarily_disable_sort (list_view->details->model));
+                                    nautilus_list_model_get_temporarily_disable_sort (ListModel));
 
     g_signal_connect (menu_item,
                       "activate",
@@ -2322,7 +2324,7 @@ set_sort_order_from_metadata_and_preferences (NautilusListView *list_view)
         sort_attribute = nautilus_file_get_metadata (file,
                                                  NAUTILUS_METADATA_KEY_LIST_VIEW_SORT_COLUMN,
                                                  NULL);
-	sort_column_id = nautilus_list_model_get_sort_column_id_from_attribute (list_view->details->model,
+	sort_column_id = nautilus_list_model_get_sort_column_id_from_attribute (ListModel,
 									  g_quark_from_string (sort_attribute));
 	g_free (sort_attribute);
 
@@ -2330,7 +2332,7 @@ set_sort_order_from_metadata_and_preferences (NautilusListView *list_view)
 
 	if (sort_column_id == -1) {
 		sort_column_id =
-			nautilus_list_model_get_sort_column_id_from_attribute (list_view->details->model,
+			nautilus_list_model_get_sort_column_id_from_attribute (ListModel,
 									 g_quark_from_string (default_sort_order));
 	}
 
@@ -2342,7 +2344,7 @@ set_sort_order_from_metadata_and_preferences (NautilusListView *list_view)
                                                         NAUTILUS_METADATA_KEY_LIST_VIEW_SORT_REVERSED,
                                                         default_sort_reversed);
     }
-    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_view->details->model),
+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (ListModel),
                                                              sort_column_id,
                                                              sort_reversed ? GTK_SORT_DESCENDING : GTK_SORT_ASCENDING);
 }
@@ -2392,7 +2394,7 @@ set_zoom_level_from_metadata_and_preferences (NautilusListView *list_view)
         nautilus_list_view_set_zoom_level (list_view, level, TRUE);
 
         /* updated the rows after updating the font size */
-        gtk_tree_model_foreach (GTK_TREE_MODEL (list_view->details->model),
+        gtk_tree_model_foreach (GTK_TREE_MODEL (ListModel),
                                 (GtkTreeModelForeachFunc)list_view_changed_foreach, NULL);
     }
 }
@@ -2461,14 +2463,14 @@ nautilus_list_view_rename_callback (NautilusFile *file,
 static void
 list_view_clear (NautilusView *view)
 {
-        NautilusListView *list_view;
+  NautilusListView *list_view;
 
-        list_view = NAUTILUS_LIST_VIEW (view);
+  list_view = NAUTILUS_LIST_VIEW (view);
 
-        if (list_view->details->model != NULL) {
-                stop_cell_editing (list_view);
-                nautilus_list_model_clear (list_view->details->model);
-        }
+  if (ListModel != NULL) {
+    stop_cell_editing (list_view);
+    nautilus_list_model_clear (ListModel);
+  }
 }
 
 static void
@@ -2482,7 +2484,7 @@ list_view_file_changed (NautilusView      *view,
 
     list_view = NAUTILUS_LIST_VIEW (view);
 
-    nautilus_list_model_file_changed (list_view->details->model, file, directory);
+    nautilus_list_model_file_changed (ListModel, file, directory);
 
     if (list_view->details->renaming_file != NULL &&
         file == list_view->details->renaming_file &&
@@ -2491,8 +2493,8 @@ list_view_file_changed (NautilusView      *view,
          * the tree-view changes above could have resorted the list, so
          * scroll to the new position
          */
-        if (nautilus_list_model_get_tree_iter_from_file (list_view->details->model, file, directory, &iter)) {
-            file_path = gtk_tree_model_get_path (GTK_TREE_MODEL (list_view->details->model), &iter);
+        if (nautilus_list_model_get_tree_iter_from_file (ListModel, file, directory, &iter)) {
+            file_path = gtk_tree_model_get_path (GTK_TREE_MODEL (ListModel), &iter);
             gtk_tree_view_scroll_to_cell (ListTree,
                                           file_path, NULL,
                                           FALSE, 0.0, 0.0);
@@ -2501,7 +2503,7 @@ list_view_file_changed (NautilusView      *view,
 
         nautilus_file_unref (list_view->details->renaming_file);
         list_view->details->renaming_file = NULL;
-        }
+    }
 }
 
 typedef struct {
@@ -2586,7 +2588,7 @@ list_view_get_backing_uri (NautilusView *view)
 	g_return_val_if_fail (NAUTILUS_IS_LIST_VIEW (view), NULL);
 
 	list_view = NAUTILUS_LIST_VIEW (view);
-	list_model = list_view->details->model;
+	list_model = ListModel;
 	tree_view = ListTree;
 
 	g_assert (list_model);
@@ -2793,9 +2795,9 @@ list_view_remove_file (NautilusView *view, NautilusFile *file, NautilusDirectory
 	path = NULL;
 	row_reference = NULL;
 	list_view = NAUTILUS_LIST_VIEW (view);
-	tree_model = GTK_TREE_MODEL(list_view->details->model);
+	tree_model = GTK_TREE_MODEL(ListModel);
 
-	if (nautilus_list_model_get_tree_iter_from_file (list_view->details->model, file, directory, &iter)) {
+	if (nautilus_list_model_get_tree_iter_from_file (ListModel, file, directory, &iter)) {
 		selection = gtk_tree_view_get_selection (ListTree);
 		file_path = gtk_tree_model_get_path (tree_model, &iter);
 
@@ -2820,7 +2822,7 @@ list_view_remove_file (NautilusView *view, NautilusFile *file, NautilusDirectory
 
 		gtk_tree_path_free (file_path);
 
-		nautilus_list_model_remove_file (list_view->details->model, file, directory);
+		nautilus_list_model_remove_file (ListModel, file, directory);
 
 		if (gtk_tree_row_reference_valid (row_reference)) {
 			if (list_view->details->new_selection_path) {
@@ -2854,7 +2856,7 @@ list_view_set_selection (NautilusView *view, GList *selection)
 	gtk_tree_selection_unselect_all (tree_selection);
 	for (node = selection; node != NULL; node = node->next) {
 		file = node->data;
-		iters = nautilus_list_model_get_all_iters_for_file (list_view->details->model, file);
+		iters = nautilus_list_model_get_all_iters_for_file (ListModel, file);
 
 		for (l = iters; l != NULL; l = l->next) {
 			gtk_tree_selection_select_iter (tree_selection,
@@ -2889,7 +2891,7 @@ list_view_invert_selection (NautilusView *view)
 
 	for (node = selection; node != NULL; node = node->next) {
 		file = node->data;
-		iters = nautilus_list_model_get_all_iters_for_file (list_view->details->model, file);
+		iters = nautilus_list_model_get_all_iters_for_file (ListModel, file);
 
 		for (l = iters; l != NULL; l = l->next) {
 			gtk_tree_selection_unselect_iter (tree_selection,
@@ -3228,7 +3230,7 @@ list_view_start_renaming_file (NautilusView *view,
 		return;
 	}
 
-	if (!nautilus_list_model_get_first_iter_for_file (list_view->details->model, file, &iter)) {
+	if (!nautilus_list_model_get_first_iter_for_file (ListModel, file, &iter)) {
 		return;
 	}
 
@@ -3238,7 +3240,7 @@ list_view_start_renaming_file (NautilusView *view,
 	/* Freeze updates to the view to prevent losing rename focus when the tree view updates */
 	nautilus_view_freeze_updates (NAUTILUS_VIEW (view));
 
-	path = gtk_tree_model_get_path (GTK_TREE_MODEL (list_view->details->model), &iter);
+	path = gtk_tree_model_get_path (GTK_TREE_MODEL (ListModel), &iter);
 
 	/* Make filename-cells editable. */
 	g_object_set (G_OBJECT (list_view->details->file_name_cell),
@@ -3410,7 +3412,7 @@ list_view_sort_directories_first_changed (NautilusView *view)
 
 	list_view = NAUTILUS_LIST_VIEW (view);
 
-	nautilus_list_model_set_should_sort_directories_first (list_view->details->model,
+	nautilus_list_model_set_should_sort_directories_first (ListModel,
 							 nautilus_view_should_sort_directories_first (view));
 }
 
@@ -3420,7 +3422,7 @@ list_view_compare_files (NautilusView *view, NautilusFile *file1, NautilusFile *
 	NautilusListView *list_view;
 
 	list_view = NAUTILUS_LIST_VIEW (view);
-	return nautilus_list_model_compare_func (list_view->details->model, file1, file2);
+	return nautilus_list_model_compare_func (ListModel, file1, file2);
 }
 
 static _Bool
@@ -3438,10 +3440,10 @@ list_view_dispose (GObject *object)
 
   list_view = NAUTILUS_LIST_VIEW (object);
 
-  if (list_view->details->model) {
+  if (ListModel) {
     stop_cell_editing (list_view);
-    g_object_unref (list_view->details->model);
-    list_view->details->model = NULL;
+    g_object_unref (ListModel);
+    ListModel = NULL;
   }
 
   if (list_view->details->drag_dest) {
@@ -3526,12 +3528,12 @@ list_view_get_first_visible_file (NautilusView *view)
 	if (gtk_tree_view_get_path_at_pos (ListTree,
 					   0, 0,
 					   &path, NULL, NULL, NULL)) {
-		gtk_tree_model_get_iter (GTK_TREE_MODEL (list_view->details->model),
+		gtk_tree_model_get_iter (GTK_TREE_MODEL (ListModel),
 					 &iter, path);
 
 		gtk_tree_path_free (path);
 
-		gtk_tree_model_get (GTK_TREE_MODEL (list_view->details->model),
+		gtk_tree_model_get (GTK_TREE_MODEL (ListModel),
 				    &iter,
 				    NAUTILUS_LIST_MODEL_FILE_COLUMN, &file,
 				    -1);
