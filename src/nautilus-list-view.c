@@ -3161,7 +3161,21 @@ nautilus_list_view_scale_font_size (NautilusListView *view,
 static void
 autosize_columns_preference_changed_callback (void *data)
 {
-    NautilusListView *view = NAUTILUS_LIST_VIEW (data);
+  NautilusListView *view = NAUTILUS_LIST_VIEW (data);
+
+  if (eel_settings_get_boolean (nautilus_list_view_preferences,
+      NAUTILUS_PREFERENCES_LIST_VIEW_AUTO_RESIZE_COLUMNS))
+  {
+    auto_resize_tree_columns(NAUTILUS_LIST_VIEW (view));
+  }
+  else {
+
+    GtkTreeViewColumn *column;
+
+    column = view->details->file_name_column;
+
+    gtk_tree_view_column_set_max_width(column, -1);
+  }
 }
 
 static void
@@ -3580,6 +3594,9 @@ list_view_finalize (GObject *object)
 	g_signal_handlers_disconnect_by_func (nautilus_preferences,
 					      default_sort_order_changed_callback,
 					      list_view);
+    g_signal_handlers_disconnect_by_func (nautilus_list_view_preferences,
+                          autosize_columns_preference_changed_callback,
+                          list_view);
 	g_signal_handlers_disconnect_by_func (nautilus_list_view_preferences,
 					      default_zoom_level_changed_callback,
 					      list_view);
@@ -3785,6 +3802,10 @@ nautilus_list_view_init (NautilusListView *list_view)
     g_signal_connect_swapped (nautilus_preferences,
                               "changed::" NAUTILUS_PREFERENCES_DEFAULT_SORT_IN_REVERSE_ORDER,
                               G_CALLBACK (default_sort_order_changed_callback),
+                              list_view);
+    g_signal_connect_swapped (nautilus_list_view_preferences,
+                              "changed::" NAUTILUS_PREFERENCES_LIST_VIEW_AUTO_RESIZE_COLUMNS,
+                              G_CALLBACK (autosize_columns_preference_changed_callback),
                               list_view);
     g_signal_connect_swapped (nautilus_list_view_preferences,
                               "changed::" NAUTILUS_PREFERENCES_LIST_VIEW_DEFAULT_ZOOM_LEVEL,

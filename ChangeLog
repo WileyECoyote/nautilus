@@ -10,7 +10,8 @@
       and increase the minimum column width from 25 to 175 pixels. Add function
       get_longest_file_name and auto_resize_tree_columns, actually implement
       auto-resizing of the name column; call auto_resize_tree_columns after
-      loading the tree in list_view_end_loading.
+      loading the tree in list_view_end_loading. Finish and connect/disconnect
+      autosize_columns_preference_changed_callback.
 
 2016-07-24 Wiley E. Hill <wileyhill@gmail.com>
 
