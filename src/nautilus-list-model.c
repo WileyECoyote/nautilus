@@ -58,27 +58,28 @@ static unsigned int list_model_signals[LAST_SIGNAL] = { 0 };
 
 static int nautilus_list_model_file_entry_compare_func (const void *a,
                                                         const void *b,
-							       void *user_data);
+                                                        void       *user_data);
 
 static void nautilus_list_model_tree_model_init (GtkTreeModelIface *iface);
 static void nautilus_list_model_sortable_init (GtkTreeSortableIface *iface);
 static void nautilus_list_model_multi_drag_source_init (EggTreeMultiDragSourceIface *iface);
 
 struct NautilusListModelDetails {
-	GSequence *files;
+
+	GSequence  *files;
 	GHashTable *directory_reverse_map; /* map from directory to GSequenceIter's */
 	GHashTable *top_reverse_map;	   /* map from files in top dir to GSequenceIter's */
 
 	int stamp;
 
 	unsigned int sort_attribute;
-	GtkSortType order;
+	GtkSortType  order;
 
 	_Bool sort_directories_first;
 
 	GtkTreeView *drag_view;
-	int drag_begin_x;
-	int drag_begin_y;
+	int          drag_begin_x;
+	int          drag_begin_y;
 
 	GPtrArray *columns;
 
@@ -191,10 +192,10 @@ nautilus_list_model_get_iter (GtkTreeModel *tree_model, GtkTreeIter *iter, GtkTr
 	NautilusListModel *model;
 	GSequence         *files;
 	GSequenceIter     *seq_ptr;
-	FileEntry *file_entry;
+	FileEntry         *file_entry;
 	int i, d;
 
-	model = (NautilusListModel *)tree_model;
+	model = (NautilusListModel*)tree_model;
 	seq_ptr = NULL;
 
 	files = model->details->files;
@@ -1037,7 +1038,7 @@ nautilus_list_model_add_file (NautilusListModel *model, NautilusFile *file,
 
 void
 nautilus_list_model_file_changed (NautilusListModel *model, NautilusFile *file,
-				  NautilusDirectory *directory)
+                                  NautilusDirectory *directory)
 {
 	FileEntry *parent_file_entry;
 	GtkTreeIter iter;
@@ -1227,6 +1228,35 @@ nautilus_list_model_clear (NautilusListModel *model)
 	g_return_if_fail (model != NULL);
 
 	nautilus_list_model_clear_directory (model, model->details->files);
+}
+
+
+GList*
+nautilus_list_model_get_files (NautilusListModel *model)
+{
+  g_return_val_if_fail (NAUTILUS_IS_LIST_MODEL(model), NULL);
+
+  GList *list = NULL;
+
+  GSequenceIter *iter;
+
+  iter = g_sequence_get_begin_iter (model->details->files);
+
+  while (!g_sequence_iter_is_end(iter)) {
+
+    FileEntry *file_entry;
+
+    file_entry = g_sequence_get (iter);
+
+    if (file_entry->file != NULL) {
+
+      list = g_list_prepend(list, file_entry->file);
+    }
+
+    iter = g_sequence_iter_next (iter);
+  }
+
+  return list;
 }
 
 NautilusFile *

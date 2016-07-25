@@ -3,6 +3,8 @@
     * libnautilus-private/nautilus-file.c: Make nautilus_file_peek_display_name
       public.
 
+    * src/nautilus-list-model.c: Add function nautilus_list_model_get_files.
+
     * src/nautilus-list-view.c: Define ListModel as list_view->details->model
       and substitute to shorten line lengths.
 

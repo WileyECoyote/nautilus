@@ -79,6 +79,7 @@ void          nautilus_list_model_remove_file                       (NautilusLis
                                                                      NautilusFile         *file,
                                                                      NautilusDirectory    *directory);
 void          nautilus_list_model_clear                             (NautilusListModel    *model);
+GList        *nautilus_list_model_get_files                         (NautilusListModel    *model);
 _Bool         nautilus_list_model_get_tree_iter_from_file           (NautilusListModel    *model,
                                                                      NautilusFile         *file,
                                                                      NautilusDirectory    *directory,
