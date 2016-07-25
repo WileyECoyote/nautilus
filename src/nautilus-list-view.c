@@ -78,6 +78,7 @@
 #define TreeView    view->details->tree_view
 #define ZoomLevel   list_view->details->zoom_level
 
+#define FILE_COL_MIN_WIDTH     175 /* pixels */
 
 struct NautilusListViewDetails {
     GtkTreeView              *tree_view;
@@ -2049,8 +2050,7 @@ create_and_setup_tree_view (NautilusListView *view)
     for (l = nautilus_columns; l != NULL; l = l->next)
     {
         NautilusColumn *nautilus_column;
-        int column_num;
-        int font_size;
+        int   column_num;
         char *name;
         char *label;
         float xalign;
@@ -2066,18 +2066,18 @@ create_and_setup_tree_view (NautilusListView *view)
 
         /* Created the name column specially, because it might have the icon in it.*/
         if (!strcmp (name, "name")) {
+
             /* Create the file name column */
             cell = gtk_cell_renderer_pixbuf_new ();
-            view->details->pixbuf_cell = (GtkCellRendererPixbuf *)cell;
+            view->details->pixbuf_cell = (GtkCellRendererPixbuf*)cell;
 
             view->details->file_name_column = gtk_tree_view_column_new ();
 
             gtk_tree_view_column_set_expand (view->details->file_name_column, TRUE);
 
-            font_size = PANGO_PIXELS (pango_font_description_get_size (gtk_style_context_get_font(gtk_widget_get_style_context(GTK_WIDGET(view)), GTK_STATE_FLAG_NORMAL)));
             /* WEH: hated this*/
             //gtk_tree_view_column_set_min_width (view->details->file_name_column, 20*font_size);
-            gtk_tree_view_column_set_min_width (view->details->file_name_column, 25);
+            gtk_tree_view_column_set_min_width (view->details->file_name_column, FILE_COL_MIN_WIDTH);
 
             g_object_ref_sink (view->details->file_name_column);
             view->details->file_name_column_num = column_num;
