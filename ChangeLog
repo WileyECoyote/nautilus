@@ -7,7 +7,10 @@
 
     * src/nautilus-list-view.c: Define ListModel as list_view->details->model
       and substitute to shorten line lengths. Define constant FILE_COL_MIN_WIDTH
-      and increase the minimum column width from 25 to 175 pixels.
+      and increase the minimum column width from 25 to 175 pixels. Add function
+      get_longest_file_name and auto_resize_tree_columns, actually implement
+      auto-resizing of the name column; call auto_resize_tree_columns after
+      loading the tree in list_view_end_loading.
 
 2016-07-24 Wiley E. Hill <wileyhill@gmail.com>
 

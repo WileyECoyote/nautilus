@@ -78,6 +78,7 @@
 #define TreeView    view->details->tree_view
 #define ZoomLevel   list_view->details->zoom_level
 
+#define FILE_COl_INDENT_OFFSET 88.5
 #define FILE_COL_MIN_WIDTH     175 /* pixels */
 
 struct NautilusListViewDetails {
@@ -1817,6 +1818,88 @@ column_header_clicked (GtkWidget        *column_button,
 	g_strfreev (visible_columns);
 
 	return TRUE;
+}
+
+static char *
+get_longest_file_name(NautilusListView *list_view)
+{
+  GList      *files;
+  const char *string;
+
+  string    = NULL;
+  files     = nautilus_list_model_get_files (ListModel);
+
+  if (files) {
+
+    GList *iter;
+    int    max_width = -1;
+
+    for (iter = files; iter; iter = iter->next) {
+
+      NautilusFile *file;
+      const char   *text;
+
+      file = iter->data;
+
+      text = nautilus_file_peek_display_name(file);
+
+      if (text) {
+
+        int len = strlen(text);
+
+        if (len > max_width) {
+          max_width = len;
+          string = text;
+        }
+      }
+    }
+  }
+
+  return string ? g_strdup(string) : NULL;
+}
+
+static void auto_resize_tree_columns (NautilusListView *list_view)
+{
+  if (gtk_widget_get_realized(GTK_WIDGET(ListTree))) {
+
+    GtkTreeViewColumn *column;
+    char *string;
+
+    int max_width;
+
+    column = list_view->details->file_name_column;
+    string = get_longest_file_name(list_view);
+
+    if (string) {
+
+      PangoContext *context;
+      PangoLayout  *layout;
+
+      int width, height;
+
+      context = gtk_widget_get_pango_context (GTK_WIDGET(ListTree));
+      layout  = pango_layout_new (context);
+
+      pango_layout_set_text (layout, string, -1);
+      pango_layout_get_size (layout, &width, &height);
+
+      max_width = PANGO_PIXELS (width) + FILE_COl_INDENT_OFFSET;
+
+      g_object_unref (layout);
+      g_free(string);
+    }
+    else {
+      max_width = FILE_COL_MIN_WIDTH;
+    }
+
+    gtk_tree_view_column_set_max_width(column, max_width);
+
+    gtk_tree_view_column_set_sizing(column, GTK_TREE_VIEW_COLUMN_FIXED);
+
+    gtk_tree_view_column_set_fixed_width(column, max_width);
+
+    gtk_tree_view_column_set_resizable(column, 1);
+  }
 }
 
 static void
@@ -3613,13 +3696,19 @@ list_view_notify_clipboard_info (NautilusClipboardMonitor *monitor,
 static void
 list_view_end_loading (NautilusView *view, _Bool all_files_seen)
 {
-	NautilusClipboardMonitor *monitor;
-	NautilusClipboardInfo    *info;
+  NautilusClipboardMonitor *monitor;
+  NautilusClipboardInfo    *info;
 
-	monitor = nautilus_clipboard_monitor_get ();
-	info = nautilus_clipboard_monitor_get_clipboard_info (monitor);
+  monitor = nautilus_clipboard_monitor_get ();
+  info    = nautilus_clipboard_monitor_get_clipboard_info (monitor);
 
-	list_view_notify_clipboard_info (monitor, info, NAUTILUS_LIST_VIEW (view));
+  list_view_notify_clipboard_info (monitor, info, NAUTILUS_LIST_VIEW (view));
+
+  if (eel_settings_get_boolean (nautilus_list_view_preferences,
+      NAUTILUS_PREFERENCES_LIST_VIEW_AUTO_RESIZE_COLUMNS))
+  {
+    auto_resize_tree_columns(NAUTILUS_LIST_VIEW (view));
+  }
 }
 
 static const char *
