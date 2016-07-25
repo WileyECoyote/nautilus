@@ -65,6 +65,7 @@ struct NautilusView {
 };
 
 struct NautilusViewClass {
+
 	GtkScrolledWindowClass parent_class;
 
 	/* The 'clear' signal is emitted to empty the view of its contents.
@@ -327,56 +328,56 @@ _Bool               nautilus_view_get_loading                      (NautilusView
 /* Hooks for subclasses to call. These are normally called only by
  * NautilusView and its subclasses
  */
-void                nautilus_view_activate_files                   (NautilusView        *view,
-								    GList                  *files,
-								    NautilusWindowOpenFlags flags,
-								    _Bool                   confirm_multiple);
-void                nautilus_view_preview_files                    (NautilusView        *view,
-								    GList               *files,
-								    GArray              *locations);
-void                nautilus_view_start_batching_selection_changes (NautilusView  *view);
-void                nautilus_view_stop_batching_selection_changes  (NautilusView  *view);
-void                nautilus_view_notify_selection_changed         (NautilusView  *view);
-GtkUIManager *      nautilus_view_get_ui_manager                   (NautilusView  *view);
-NautilusDirectory  *nautilus_view_get_model                        (NautilusView  *view);
-NautilusFile       *nautilus_view_get_directory_as_file            (NautilusView  *view);
-void                nautilus_view_pop_up_background_context_menu   (NautilusView  *view,
-								    GdkEventButton   *event);
-void                nautilus_view_pop_up_selection_context_menu    (NautilusView  *view,
-								    GdkEventButton   *event);
-_Bool               nautilus_view_should_show_file                 (NautilusView  *view,
-								    NautilusFile     *file);
-_Bool   	    nautilus_view_should_sort_directories_first    (NautilusView  *view);
-void                nautilus_view_ignore_hidden_file_preferences   (NautilusView  *view);
-void                nautilus_view_set_show_foreign                 (NautilusView  *view,
-								    _Bool             show_foreign);
-_Bool               nautilus_view_handle_scroll_event              (NautilusView  *view,
-								    GdkEventScroll   *event);
+void                nautilus_view_activate_files                   (NautilusView           *view,
+                                                                    GList                  *files,
+                                                                    NautilusWindowOpenFlags flags,
+                                                                   _Bool                    confirm_multiple);
+void                nautilus_view_preview_files                    (NautilusView   *view,
+                                                                    GList          *files,
+                                                                    GArray         *locations);
+void                nautilus_view_start_batching_selection_changes (NautilusView   *view);
+void                nautilus_view_stop_batching_selection_changes  (NautilusView   *view);
+void                nautilus_view_notify_selection_changed         (NautilusView   *view);
+GtkUIManager       *nautilus_view_get_ui_manager                   (NautilusView   *view);
+NautilusDirectory  *nautilus_view_get_model                        (NautilusView   *view);
+NautilusFile       *nautilus_view_get_directory_as_file            (NautilusView   *view);
+void                nautilus_view_pop_up_background_context_menu   (NautilusView   *view,
+                                                                    GdkEventButton *event);
+void                nautilus_view_pop_up_selection_context_menu    (NautilusView   *view,
+                                                                    GdkEventButton *event);
+_Bool               nautilus_view_should_show_file                 (NautilusView   *view,
+                                                                    NautilusFile   *file);
+_Bool               nautilus_view_should_sort_directories_first    (NautilusView   *view);
+void                nautilus_view_ignore_hidden_file_preferences   (NautilusView   *view);
+void                nautilus_view_set_show_foreign                 (NautilusView   *view,
+																 _Bool            show_foreign);
+_Bool               nautilus_view_handle_scroll_event              (NautilusView   *view,
+                                                                    GdkEventScroll *event);
 
 void                nautilus_view_freeze_updates                   (NautilusView  *view);
 void                nautilus_view_unfreeze_updates                 (NautilusView  *view);
 _Bool               nautilus_view_get_is_renaming                  (NautilusView  *view);
 void                nautilus_view_set_is_renaming                  (NautilusView  *view,
-								    _Bool          renaming);
-void                nautilus_view_add_subdirectory                (NautilusView  *view,
-								   NautilusDirectory*directory);
-void                nautilus_view_remove_subdirectory             (NautilusView  *view,
-								   NautilusDirectory*directory);
+																 _Bool           renaming);
+void                nautilus_view_add_subdirectory                 (NautilusView  *view,
+                                                                    NautilusDirectory *directory);
+void                nautilus_view_remove_subdirectory              (NautilusView  *view,
+								NautilusDirectory *directory);
 
 _Bool               nautilus_view_is_editable                     (NautilusView *view);
 
 /* NautilusView methods */
-const char *      nautilus_view_get_view_id                (NautilusView      *view);
+const char       *nautilus_view_get_view_id                (NautilusView      *view);
 
 /* file operations */
-char *            nautilus_view_get_backing_uri            (NautilusView      *view);
+char             *nautilus_view_get_backing_uri            (NautilusView      *view);
 void              nautilus_view_move_copy_items            (NautilusView      *view,
-							    const GList       *item_uris,
-							    GArray            *relative_item_points,
-							    const char        *target_uri,
-							    int                copy_action,
-							    int                x,
-							    int                y);
+														  const GList       *item_uris,
+														  GArray            *relative_item_points,
+														  const char        *target_uri,
+														  int                copy_action,
+														  int                x,
+														  int                y);
 void              nautilus_view_new_file_with_initial_contents (NautilusView *view,
                                                                 const char *parent_uri,
                                                                 const char *filename,
@@ -388,30 +389,30 @@ void              nautilus_view_new_file_with_initial_contents (NautilusView *vi
 int               nautilus_view_get_selection_count        (NautilusView      *view);
 GList *           nautilus_view_get_selection              (NautilusView      *view);
 void              nautilus_view_set_selection              (NautilusView      *view,
-							    GList             *selection);
+                                                            GList             *selection);
 
 
 void              nautilus_view_load_location              (NautilusView      *view,
-							    GFile             *location);
+                                                            GFile             *location);
 void              nautilus_view_stop_loading               (NautilusView      *view);
 
 char **           nautilus_view_get_emblem_names_to_exclude (NautilusView     *view);
 char *            nautilus_view_get_first_visible_file     (NautilusView      *view);
 void              nautilus_view_scroll_to_file             (NautilusView      *view,
-							    const char        *uri);
+                                                            const char        *uri);
 char *            nautilus_view_get_title                  (NautilusView      *view);
 _Bool             nautilus_view_supports_zooming           (NautilusView      *view);
 void              nautilus_view_bump_zoom_level            (NautilusView      *view,
 							    int                zoom_increment);
 void              nautilus_view_zoom_to_level              (NautilusView      *view,
-							    NautilusZoomLevel  level);
+                                                            NautilusZoomLevel  level);
 void              nautilus_view_restore_default_zoom_level (NautilusView      *view);
 _Bool             nautilus_view_can_zoom_in                (NautilusView      *view);
 _Bool             nautilus_view_can_zoom_out               (NautilusView      *view);
 NautilusZoomLevel nautilus_view_get_zoom_level             (NautilusView      *view);
 void              nautilus_view_pop_up_location_context_menu (NautilusView    *view,
-							      GdkEventButton  *event,
-							      const char      *location);
+                                                              GdkEventButton  *event,
+                                                              const char      *location);
 void              nautilus_view_grab_focus                 (NautilusView      *view);
 void              nautilus_view_update_menus               (NautilusView      *view);
 void              nautilus_view_new_folder                 (NautilusView      *view);

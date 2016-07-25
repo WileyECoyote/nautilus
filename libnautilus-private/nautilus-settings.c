@@ -527,7 +527,7 @@ nautilus_settings_init (NautilusSettings *settings)
 }
 
  /* Must not be called before nautilus_global_preferences_init */
-_Bool  nautilus_settings_perpetuate(void)
+_Bool nautilus_settings_perpetuate(void)
 {
     if (!config) {
       g_object_new (NAUTILUS_TYPE_SETTINGS, NULL);

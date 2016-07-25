@@ -207,7 +207,7 @@ GList *            nautilus_directory_match_pattern            (NautilusDirector
 _Bool              nautilus_directory_are_all_files_seen       (NautilusDirectory         *directory);
 
 /* Return true if the directory is local. */
-_Bool              nautilus_directory_is_local         (NautilusDirectory         *directory);
+_Bool              nautilus_directory_is_local                 (NautilusDirectory         *directory);
 
 _Bool              nautilus_directory_is_in_trash              (NautilusDirectory         *directory);
 

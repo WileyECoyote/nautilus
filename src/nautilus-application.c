@@ -1240,8 +1240,10 @@ nautilus_application_startup (GApplication *app)
 #if HAVE_GNOME_DESKTOP
     nautilus_desktop_icon_view_register ();
 #endif
+
     nautilus_list_view_register ();
     nautilus_icon_view_compact_register ();
+
 #if ENABLE_EMPTY_VIEW
     nautilus_empty_view_register ();
 #endif
