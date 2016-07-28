@@ -307,7 +307,7 @@ text_view_connect_callbacks (GObject *object, TargetCallbackData *target_data)
     text_buffer_update_sensitivity (buffer, target_data);
   }
   else {
-    fprintf(stderr, "%s buffer == NULL\n", __func__, buffer);
+    fprintf(stderr, "%s buffer == NULL\n", __func__);
   }
 }
 
@@ -325,7 +325,7 @@ text_view_disconnect_callbacks (GObject *object, TargetCallbackData *target_data
                                           target_data);
   }
   else {
-    fprintf(stderr, "%s buffer == NULL\n", __func__, buffer);
+    fprintf(stderr, "%s buffer == NULL\n", __func__);
   }
 }
 
