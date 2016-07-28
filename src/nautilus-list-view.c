@@ -1907,12 +1907,11 @@ apply_columns_settings (NautilusListView  *list_view,
                         char             **column_order,
                         char             **visible_columns)
 {
-        GList *all_columns;
-        NautilusFile *file;
-        GList *old_view_columns, *view_columns;
-        GHashTable *visible_columns_hash;
+        GList             *all_columns, *iter;
+        NautilusFile      *file;
+        GList             *old_view_columns, *view_columns;
+        GHashTable        *visible_columns_hash;
         GtkTreeViewColumn *prev_view_column;
-        GList *l;
         int i;
 
         file = nautilus_view_get_directory_as_file (NAUTILUS_VIEW (list_view));
@@ -1934,24 +1933,26 @@ apply_columns_settings (NautilusListView  *list_view,
                                      g_ascii_strdown (visible_columns[i], -1));
         }
 
-        for (l = all_columns; l != NULL; l = l->next) {
-                char *name;
-                char *lowercase;
+        for (iter = all_columns; iter != NULL; iter = iter->next) {
 
-                g_object_get (G_OBJECT (l->data), "name", &name, NULL);
-                lowercase = g_ascii_strdown (name, -1);
+          char *name;
+          char *lowercase;
 
-                if (g_hash_table_lookup (visible_columns_hash, lowercase) != NULL) {
-                        GtkTreeViewColumn *view_column;
+          g_object_get (G_OBJECT (iter->data), "name", &name, NULL);
+          lowercase = g_ascii_strdown (name, -1);
 
-                        view_column = g_hash_table_lookup (list_view->details->columns, name);
-                        if (view_column != NULL) {
-                                view_columns = g_list_prepend (view_columns, view_column);
-                        }
-                }
+          if (g_hash_table_lookup (visible_columns_hash, lowercase) != NULL) {
 
-                g_free (name);
-                g_free (lowercase);
+            GtkTreeViewColumn *view_column;
+
+            view_column = g_hash_table_lookup (list_view->details->columns, name);
+            if (view_column != NULL) {
+              view_columns = g_list_prepend (view_columns, view_column);
+            }
+          }
+
+          g_free (name);
+          g_free (lowercase);
         }
 
         g_hash_table_destroy (visible_columns_hash);
@@ -1961,27 +1962,27 @@ apply_columns_settings (NautilusListView  *list_view,
 
         /* remove columns that are not present in the configuration */
         old_view_columns = gtk_tree_view_get_columns (ListTree);
-        for (l = old_view_columns; l != NULL; l = l->next) {
-                if (g_list_find (view_columns, l->data) == NULL) {
-                        gtk_tree_view_remove_column (ListTree, l->data);
-                }
+        for (iter = old_view_columns; iter != NULL; iter = iter->next) {
+          if (g_list_find (view_columns, iter->data) == NULL) {
+            gtk_tree_view_remove_column (ListTree, iter->data);
+          }
         }
         g_list_free (old_view_columns);
 
         /* append new columns from the configuration */
         old_view_columns = gtk_tree_view_get_columns (ListTree);
-        for (l = view_columns; l != NULL; l = l->next) {
-                if (g_list_find (old_view_columns, l->data) == NULL) {
-                        gtk_tree_view_append_column (ListTree, l->data);
-                }
+        for (iter = view_columns; iter != NULL; iter = iter->next) {
+          if (g_list_find (old_view_columns, iter->data) == NULL) {
+            gtk_tree_view_append_column (ListTree, iter->data);
+          }
         }
         g_list_free (old_view_columns);
 
         /* place columns in the correct order */
         prev_view_column = NULL;
-        for (l = view_columns; l != NULL; l = l->next) {
-                gtk_tree_view_move_column_after (ListTree, l->data, prev_view_column);
-                prev_view_column = l->data;
+        for (iter = view_columns; iter != NULL; iter = iter->next) {
+          gtk_tree_view_move_column_after (ListTree, iter->data, prev_view_column);
+          prev_view_column = iter->data;
         }
         g_list_free (view_columns);
 }
@@ -2047,7 +2048,7 @@ create_and_setup_tree_view (NautilusListView *view)
     AtkObject         *atk_object;
 
     GList *nautilus_columns;
-    GList *l;
+    GList *iter;
     char **default_column_order, **default_visible_columns;
 
     TreeView = GTK_TREE_VIEW (gtk_tree_view_new ());
@@ -2130,15 +2131,15 @@ create_and_setup_tree_view (NautilusListView *view)
 
     nautilus_columns = nautilus_get_all_columns ();
 
-    for (l = nautilus_columns; l != NULL; l = l->next)
-    {
+    for (iter = nautilus_columns; iter != NULL; iter = iter->next) {
+
         NautilusColumn *nautilus_column;
         int   column_num;
         char *name;
         char *label;
         float xalign;
 
-        nautilus_column = NAUTILUS_COLUMN (l->data);
+        nautilus_column = NAUTILUS_COLUMN (iter->data);
 
         g_object_get (nautilus_column,
                       "name", &name,
