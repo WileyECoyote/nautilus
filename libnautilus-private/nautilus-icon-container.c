@@ -5656,7 +5656,7 @@ nautilus_icon_container_constructor (unsigned int           type,
     GObject *object;
 
     object = G_OBJECT_CLASS (nautilus_icon_container_parent_class)->constructor (type, n_construct_params, construct_params);
-fprintf(stderr,"%s\n", __func__);
+
     container = NAUTILUS_ICON_CONTAINER (object);
     if (nautilus_icon_container_get_is_desktop (container)) {
 
@@ -5666,7 +5666,7 @@ fprintf(stderr,"%s\n", __func__);
                                   container);
     }
     else {
-      fprintf(stderr,"%s not desktop\n", __func__);
+
         g_signal_connect_swapped (nautilus_icon_view_preferences,
                                   "changed::" NAUTILUS_PREFERENCES_ICON_VIEW_TEXT_ELLIPSIS_LIMIT,
                                   G_CALLBACK (text_ellipsis_limit_changed_container_callback),
@@ -6194,7 +6194,7 @@ nautilus_icon_container_init (NautilusIconContainer *container)
                       G_CALLBACK (handle_focus_in_event), NULL);
     g_signal_connect (container, "focus-out-event",
                       G_CALLBACK (handle_focus_out_event), NULL);
-fprintf(stderr,"%s %d\n", __func__, setup_prefs);
+
     if (!setup_prefs) {
         g_signal_connect_swapped (nautilus_tooltips_preferences,
                                   "changed::" NAUTILUS_TOOLTIP_PREFERENCES_DESKTOP,
