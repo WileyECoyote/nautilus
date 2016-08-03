@@ -268,7 +268,15 @@ struct NautilusViewDetails
 
     GList *subdirectory_list;
 
+    unsigned int    copy_move_merge_ids[4];
+    GtkActionGroup *copy_move_action_groups[4];
+
     GdkPoint context_menu_position;
+
+    _Bool showing_bookmarks_in_to_menus;
+    _Bool showing_places_in_to_menus;
+
+    GVolumeMonitor *volume_monitor;
 };
 
 typedef struct {
@@ -767,6 +775,30 @@ typedef struct {
 	NautilusFile *file;
 	NautilusView *directory_view;
 } CreateTemplateParameters;
+
+typedef struct {
+    NautilusView *view;
+    char *dest_uri;
+} BookmarkCallbackData;
+
+
+static BookmarkCallbackData *
+bookmark_callback_data_new (NautilusView *view, char *uri)
+{
+    BookmarkCallbackData *result;
+
+    result = g_new0 (BookmarkCallbackData, 1);
+    result->view = view;
+    result->dest_uri = g_strdup(uri);
+    return result;
+}
+
+static void
+bookmark_callback_data_free (BookmarkCallbackData *data)
+{
+    g_free ((char *)data->dest_uri);
+    g_free (data);
+}
 
 static ApplicationLaunchParameters *
 application_launch_parameters_new (GAppInfo *application,
@@ -4842,6 +4874,503 @@ reset_extension_actions_menu (NautilusView *view, GList *selection)
 	}
 }
 
+static void
+move_copy_selection_to_location (NautilusView *view,
+                                 int           copy_action,
+                                 char         *target_uri)
+{
+    GList *selection, *uris, *l;
+
+    selection = nautilus_view_get_selection_for_transfer (view);
+    if (selection == NULL) {
+        return;
+    }
+
+    uris = NULL;
+    for (l = selection; l != NULL; l = l->next) {
+        uris = g_list_prepend (uris,
+                       nautilus_file_get_uri ((NautilusFile *) l->data));
+    }
+    uris = g_list_reverse (uris);
+
+    nautilus_view_move_copy_items (view, uris, NULL, target_uri,
+                       copy_action,
+                       0, 0);
+
+    g_list_free_full (uris, g_free);
+    nautilus_file_list_free (selection);
+}
+
+static void
+action_move_bookmark_callback (GtkAction *action, void *callback_data)
+{
+    NautilusView *view;
+    BookmarkCallbackData *data;
+
+    data = (BookmarkCallbackData *) callback_data;
+    view = NAUTILUS_VIEW(data->view);
+    move_copy_selection_to_location (view, GDK_ACTION_MOVE, data->dest_uri);
+}
+
+static void
+action_copy_bookmark_callback (GtkAction *action, gpointer callback_data)
+{
+    NautilusView *view;
+    BookmarkCallbackData *data;
+
+    data = (BookmarkCallbackData *) callback_data;
+    view = NAUTILUS_VIEW(data->view);
+    move_copy_selection_to_location (view, GDK_ACTION_COPY, data->dest_uri);
+}
+
+static void
+setup_bookmark_action(      char *action_name,
+                      const char *bookmark_name,
+                           GIcon *icon,
+                            char *mount_uri,
+                    GtkUIManager *ui_manager,
+                          _Bool   move,
+                  GtkActionGroup *action_group,
+                             int  merge_id,
+                            char *path,
+                    NautilusView *view)
+{
+
+    GtkAction *action;
+    action = gtk_action_new (action_name,
+             bookmark_name,
+             NULL,
+             NULL);
+    gtk_action_set_gicon (action, icon);
+
+    if (move) {
+        g_signal_connect_data (action, "activate",
+               G_CALLBACK (action_move_bookmark_callback),
+               bookmark_callback_data_new(view, mount_uri),
+               (GClosureNotify)bookmark_callback_data_free, 0);
+    } else {
+        g_signal_connect_data (action, "activate",
+               G_CALLBACK (action_copy_bookmark_callback),
+               bookmark_callback_data_new(view, mount_uri),
+               (GClosureNotify)bookmark_callback_data_free, 0);
+    }
+
+    gtk_action_group_add_action (action_group, action);
+
+    gtk_ui_manager_add_ui ( ui_manager,
+                            merge_id,
+                            path,
+                            action_name,
+                            action_name,
+                            GTK_UI_MANAGER_MENUITEM,
+                            FALSE);
+
+    g_free (action_name);
+}
+
+static void
+add_bookmark_to_action (NautilusView *view, const char *bookmark_name,
+                        GIcon *icon, char *mount_uri, int index)
+{
+    GtkUIManager *ui_manager;
+    ui_manager = nautilus_window_get_ui_manager (view->details->window);
+
+    setup_bookmark_action(g_strdup_printf ("BM_MOVETO_POPUP_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            TRUE,
+                                            view->details->copy_move_action_groups[0],
+                                            view->details->copy_move_merge_ids[0],
+                                            NAUTILUS_VIEW_POPUP_PATH_BOOKMARK_MOVETO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("BM_COPYTO_POPUP_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            FALSE,
+                                            view->details->copy_move_action_groups[1],
+                                            view->details->copy_move_merge_ids[1],
+                                            NAUTILUS_VIEW_POPUP_PATH_BOOKMARK_COPYTO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("BM_MOVETO_MENU_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            TRUE,
+                                            view->details->copy_move_action_groups[2],
+                                            view->details->copy_move_merge_ids[2],
+                                            NAUTILUS_VIEW_MENU_PATH_BOOKMARK_MOVETO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("BM_COPYTO_MENU_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            FALSE,
+                                            view->details->copy_move_action_groups[3],
+                                            view->details->copy_move_merge_ids[3],
+                                            NAUTILUS_VIEW_MENU_PATH_BOOKMARK_COPYTO_ENTRIES_PLACEHOLDER,
+                                            view);
+}
+
+static void
+add_place_to_action (NautilusView *view, const char *bookmark_name,
+                     GIcon        *icon, char *mount_uri, int index)
+{
+    GtkUIManager *ui_manager;
+    ui_manager = nautilus_window_get_ui_manager (view->details->window);
+
+    setup_bookmark_action(g_strdup_printf ("PLACE_MOVETO_POPUP_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            TRUE,
+                                            view->details->copy_move_action_groups[0],
+                                            view->details->copy_move_merge_ids[0],
+                                            NAUTILUS_VIEW_POPUP_PATH_PLACES_MOVETO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("PLACE_COPYTO_POPUP_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            FALSE,
+                                            view->details->copy_move_action_groups[1],
+                                            view->details->copy_move_merge_ids[1],
+                                            NAUTILUS_VIEW_POPUP_PATH_PLACES_COPYTO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("PLACE_MOVETO_MENU_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            TRUE,
+                                            view->details->copy_move_action_groups[2],
+                                            view->details->copy_move_merge_ids[2],
+                                            NAUTILUS_VIEW_MENU_PATH_PLACES_MOVETO_ENTRIES_PLACEHOLDER,
+                                            view);
+
+    setup_bookmark_action(g_strdup_printf ("PLACE_COPYTO_MENU_%d", index),
+                                            bookmark_name,
+                                            icon,
+                                            mount_uri,
+                                            ui_manager,
+                                            FALSE,
+                                            view->details->copy_move_action_groups[3],
+                                            view->details->copy_move_merge_ids[3],
+                                            NAUTILUS_VIEW_MENU_PATH_PLACES_COPYTO_ENTRIES_PLACEHOLDER,
+                                            view);
+}
+
+static void
+reset_move_copy_to_menu (NautilusView *view)
+{
+    NautilusBookmark *bookmark;
+    NautilusFile *file;
+    int bookmark_count, index;
+    GtkUIManager *ui_manager;
+    GFile *root;
+    const char *bookmark_name;
+    GIcon *icon;
+    char *mount_uri;
+
+    ui_manager = nautilus_window_get_ui_manager (view->details->window);
+
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        nautilus_ui_unmerge_ui (ui_manager,
+                &view->details->copy_move_merge_ids[i],
+                &view->details->copy_move_action_groups[i]);
+        char *id = g_strdup_printf ("MoveCopyMenuGroup_%d", i);
+        nautilus_ui_prepare_merge_ui (ui_manager,
+                                  id,
+                                  &view->details->copy_move_merge_ids[i],
+                                  &view->details->copy_move_action_groups[i]);
+        g_free (id);
+    }
+
+    GtkAction *action;
+
+    mount_uri = nautilus_get_home_directory_uri ();
+    file = nautilus_file_get_by_uri (mount_uri);
+    g_free (mount_uri);
+
+    action = gtk_action_group_get_action (view->details->dir_action_group, NAUTILUS_ACTION_COPY_TO_HOME);
+    gtk_action_set_gicon (action, nautilus_file_get_gicon (file, NAUTILUS_FILE_ICON_FLAGS_NONE));
+    action = gtk_action_group_get_action (view->details->dir_action_group, NAUTILUS_ACTION_MOVE_TO_HOME);
+    gtk_action_set_gicon (action, nautilus_file_get_gicon (file, NAUTILUS_FILE_ICON_FLAGS_NONE));
+
+    g_object_unref (file);
+    mount_uri = nautilus_get_desktop_directory_uri ();
+    file = nautilus_file_get_by_uri (mount_uri);
+    g_free (mount_uri);
+
+    action = gtk_action_group_get_action (view->details->dir_action_group, NAUTILUS_ACTION_COPY_TO_DESKTOP);
+    gtk_action_set_gicon (action, nautilus_file_get_gicon (file, NAUTILUS_FILE_ICON_FLAGS_NONE));
+    action = gtk_action_group_get_action (view->details->dir_action_group, NAUTILUS_ACTION_MOVE_TO_DESKTOP);
+    gtk_action_set_gicon (action, nautilus_file_get_gicon (file, NAUTILUS_FILE_ICON_FLAGS_NONE));
+
+    g_object_unref (file);
+
+    if (view->details->showing_bookmarks_in_to_menus) {
+        bookmark_count = nautilus_bookmark_list_length (view->details->bookmarks);
+        for (index = 0; index < bookmark_count; ++index) {
+            bookmark = nautilus_bookmark_list_item_at (view->details->bookmarks, index);
+
+            /* Unlike the sidebar or the bookmarks menu, we are using bookmarks as
+               file operation targets, not locations to open.  As such, we should
+               never show unmounted/invalid locations in the move-to/copy-to menu */
+            if (!nautilus_bookmark_uri_get_exists (bookmark)) {
+                continue;
+            }
+
+            root = nautilus_bookmark_get_location (bookmark);
+            file = nautilus_file_get (root);
+
+            nautilus_file_unref (file);
+
+            bookmark_name = nautilus_bookmark_get_name (bookmark);
+            icon          = nautilus_bookmark_get_icon (bookmark);
+            mount_uri     = nautilus_bookmark_get_uri (bookmark);
+
+            add_bookmark_to_action (view,
+                                    bookmark_name,
+                                    icon,
+                                    mount_uri,
+                                    index);
+
+            g_object_unref (root);
+            g_object_unref (icon);
+            g_free (mount_uri);
+        }
+    }
+
+    if (view->details->showing_places_in_to_menus) {
+
+        GList          *mounts, *l, *ll, *drives, *volumes;
+        GVolumeMonitor *volume_monitor;
+        GMount         *mount;
+        GVolume        *volume;
+        GDrive         *drive;
+        GList          *network_mounts = NULL;
+        GList          *network_volumes = NULL;
+        char           *name, *identifier;
+        index = 0;
+
+        /* add mounts that has no volume (/etc/mtab mounts, ftp, sftp,...) */
+        volume_monitor = g_volume_monitor_get ();
+        mounts = g_volume_monitor_get_mounts (volume_monitor);
+
+        for (l = mounts; l != NULL; l = l->next) {
+            mount = l->data;
+            if (g_mount_is_shadowed (mount)) {
+                g_object_unref (mount);
+                continue;
+            }
+            volume = g_mount_get_volume (mount);
+            if (volume != NULL) {
+                    g_object_unref (volume);
+                g_object_unref (mount);
+                continue;
+            }
+            root = g_mount_get_default_location (mount);
+
+            if (!g_file_is_native (root)) {
+
+                _Bool really_network = TRUE;
+                char *path = g_file_get_path (root);
+
+                if (!path) {
+                    network_mounts = g_list_prepend (network_mounts, mount);
+                    g_object_unref (root);
+                    continue;
+                }
+
+                char *escaped1 = g_uri_unescape_string (path, "");
+                char *escaped2 = g_uri_unescape_string (escaped1, "");
+                char *ptr = g_strrstr (escaped2, "file://");
+
+                if (ptr != NULL) {
+                    GFile *actual_file = g_file_new_for_uri (ptr);
+                    if (g_file_is_native(actual_file)) {
+                        really_network = FALSE;
+                    }
+                    g_object_unref(actual_file);
+                }
+                g_free (path);
+                g_free (escaped1);
+                g_free (escaped2);
+                if (really_network) {
+                    network_mounts = g_list_prepend (network_mounts, mount);
+                    g_object_unref (root);
+                    continue;
+                }
+            }
+
+            icon = g_mount_get_icon (mount);
+            mount_uri = g_file_get_uri (root);
+            name = g_mount_get_name (mount);
+
+            add_place_to_action (view,
+                                 name,
+                                 icon,
+                                 mount_uri,
+                                 index);
+
+            g_object_unref (root);
+            g_object_unref (mount);
+            g_object_unref (icon);
+            g_free (name);
+            g_free (mount_uri);
+
+            index++;
+        }
+        g_list_free (mounts);
+
+        /* first go through all connected drives */
+        drives = g_volume_monitor_get_connected_drives (volume_monitor);
+
+        for (l = drives; l != NULL; l = l->next) {
+            drive = l->data;
+
+            volumes = g_drive_get_volumes (drive);
+            if (volumes != NULL) {
+                for (ll = volumes; ll != NULL; ll = ll->next) {
+                    volume = ll->data;
+                    identifier = g_volume_get_identifier (volume, G_VOLUME_IDENTIFIER_KIND_CLASS);
+
+                    if (g_strcmp0 (identifier, "network") == 0) {
+                        g_free (identifier);
+                        network_volumes = g_list_prepend (network_volumes, volume);
+                        continue;
+                    }
+                    g_free (identifier);
+
+                    mount = g_volume_get_mount (volume);
+                    if (mount != NULL) {
+                        /* Show mounted volume in the sidebar */
+                        icon = g_mount_get_icon (mount);
+                        root = g_mount_get_default_location (mount);
+                        mount_uri = g_file_get_uri (root);
+                        name = g_mount_get_name (mount);
+
+                        add_place_to_action (view,
+                                             name,
+                                             icon,
+                                             mount_uri,
+                                             index);
+
+                        g_object_unref (root);
+                        g_object_unref (mount);
+                        g_object_unref (icon);
+                        g_free (name);
+                        g_free (mount_uri);
+                        index++;
+                    }
+                    g_object_unref (volume);
+                }
+                g_list_free (volumes);
+            }
+            g_object_unref (drive);
+        }
+        g_list_free (drives);
+
+        /* add all volumes that is not associated with a drive */
+        volumes = g_volume_monitor_get_volumes (volume_monitor);
+        for (l = volumes; l != NULL; l = l->next) {
+            volume = l->data;
+            drive = g_volume_get_drive (volume);
+            if (drive != NULL) {
+                    g_object_unref (volume);
+                g_object_unref (drive);
+                continue;
+            }
+
+            identifier = g_volume_get_identifier (volume, G_VOLUME_IDENTIFIER_KIND_CLASS);
+
+            if (g_strcmp0 (identifier, "network") == 0) {
+                g_free (identifier);
+                network_volumes = g_list_prepend (network_volumes, volume);
+                continue;
+            }
+            g_free (identifier);
+
+            mount = g_volume_get_mount (volume);
+            if (mount != NULL) {
+                icon = g_mount_get_icon (mount);
+                root = g_mount_get_default_location (mount);
+                mount_uri = g_file_get_uri (root);
+
+                g_object_unref (root);
+                name = g_mount_get_name (mount);
+
+                add_place_to_action (view,
+                                     name,
+                                     icon,
+                                     mount_uri,
+                                     index);
+
+                g_object_unref (mount);
+                g_object_unref (icon);
+                g_free (name);
+                g_free (mount_uri);
+                index++;
+            }
+            g_object_unref (volume);
+        }
+        g_list_free (volumes);
+        g_object_unref (volume_monitor);
+
+        network_volumes = g_list_reverse (network_volumes);
+        for (l = network_volumes; l != NULL; l = l->next) {
+            volume = l->data;
+            mount = g_volume_get_mount (volume);
+
+            if (mount != NULL) {
+                network_mounts = g_list_prepend (network_mounts, mount);
+                continue;
+            }
+        }
+
+        g_list_free_full (network_volumes, g_object_unref);
+
+        network_mounts = g_list_reverse (network_mounts);
+
+        for (l = network_mounts; l != NULL; l = l->next) {
+            mount = l->data;
+            root = g_mount_get_default_location (mount);
+            icon = g_mount_get_icon (mount);
+            mount_uri = g_file_get_uri (root);
+            name = g_mount_get_name (mount);
+
+            add_place_to_action (view,
+                                 name,
+                                 icon,
+                                 mount_uri,
+                                 index);
+
+            g_object_unref (root);
+            g_object_unref (icon);
+            g_free (name);
+            g_free (mount_uri);
+            index++;
+		}
+
+        g_list_free_full (network_mounts, g_object_unref);
+	}
+}
+
 static char *
 change_to_view_directory (NautilusView *view)
 {
@@ -5776,34 +6305,6 @@ void
 nautilus_view_action_copy (GtkAction *action, NautilusView *view)
 {
   action_copy_files_callback (action, view);
-}
-
-
-static void
-move_copy_selection_to_location (NautilusView *view,
-				 int copy_action,
-				 char *target_uri)
-{
-	GList *selection, *uris, *l;
-
-	selection = nautilus_view_get_selection_for_transfer (view);
-	if (selection == NULL) {
-		return;
-	}
-
-	uris = NULL;
-	for (l = selection; l != NULL; l = l->next) {
-		uris = g_list_prepend (uris,
-				       nautilus_file_get_uri ((NautilusFile *) l->data));
-	}
-	uris = g_list_reverse (uris);
-
-	nautilus_view_move_copy_items (view, uris, NULL, target_uri,
-				       copy_action,
-				       0, 0);
-
-	g_list_free_full (uris, g_free);
-	nautilus_file_list_free (selection);
 }
 
 static void
