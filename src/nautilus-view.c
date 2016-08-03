@@ -117,6 +117,7 @@
 #define NAUTILUS_VIEW_MENU_PATH_APPLICATIONS_SUBMENU_PLACEHOLDER  "/MenuBar/File/Open Placeholder/Open With/Applications Placeholder"
 #define NAUTILUS_VIEW_MENU_PATH_APPLICATIONS_PLACEHOLDER    	  "/MenuBar/File/Open Placeholder/Applications Placeholder"
 #define NAUTILUS_VIEW_MENU_PATH_SCRIPTS_PLACEHOLDER               "/MenuBar/File/Open Placeholder/Scripts/Scripts Placeholder"
+
 #define NAUTILUS_VIEW_MENU_PATH_EXTENSION_ACTIONS_PLACEHOLDER     "/MenuBar/Edit/Extension Actions"
 #define NAUTILUS_VIEW_MENU_PATH_NEW_DOCUMENTS_PLACEHOLDER  	  "/MenuBar/File/New Items Placeholder/New Documents/New Documents Placeholder"
 #define NAUTILUS_VIEW_MENU_PATH_OPEN				  "/MenuBar/File/Open Placeholder/Open"
@@ -125,12 +126,24 @@
 #define NAUTILUS_VIEW_POPUP_PATH_APPLICATIONS_SUBMENU_PLACEHOLDER "/selection/Open Placeholder/Open With/Applications Placeholder"
 #define NAUTILUS_VIEW_POPUP_PATH_APPLICATIONS_PLACEHOLDER    	  "/selection/Open Placeholder/Applications Placeholder"
 #define NAUTILUS_VIEW_POPUP_PATH_SCRIPTS_PLACEHOLDER    	  "/selection/Open Placeholder/Scripts/Scripts Placeholder"
+
 #define NAUTILUS_VIEW_POPUP_PATH_EXTENSION_ACTIONS		  "/selection/Extension Actions"
 #define NAUTILUS_VIEW_POPUP_PATH_OPEN				  "/selection/Open Placeholder/Open"
 
 #define NAUTILUS_VIEW_POPUP_PATH_BACKGROUND			  "/background"
 #define NAUTILUS_VIEW_POPUP_PATH_BACKGROUND_SCRIPTS_PLACEHOLDER	  "/background/Before Zoom Items/New Object Items/Scripts/Scripts Placeholder"
+
 #define NAUTILUS_VIEW_POPUP_PATH_BACKGROUND_NEW_DOCUMENTS_PLACEHOLDER "/background/Before Zoom Items/New Object Items/New Documents/New Documents Placeholder"
+
+#define NAUTILUS_VIEW_POPUP_PATH_BOOKMARK_MOVETO_ENTRIES_PLACEHOLDER "/selection/File Actions/MoveToMenu/BookmarkMoveToPlaceHolder"
+#define NAUTILUS_VIEW_POPUP_PATH_BOOKMARK_COPYTO_ENTRIES_PLACEHOLDER "/selection/File Actions/CopyToMenu/BookmarkCopyToPlaceHolder"
+#define NAUTILUS_VIEW_MENU_PATH_BOOKMARK_MOVETO_ENTRIES_PLACEHOLDER "/MenuBar/Edit/File Items Placeholder/MoveToMenu/BookmarkMoveToPlaceHolder"
+#define NAUTILUS_VIEW_MENU_PATH_BOOKMARK_COPYTO_ENTRIES_PLACEHOLDER "/MenuBar/Edit/File Items Placeholder/CopyToMenu/BookmarkCopyToPlaceHolder"
+
+#define NAUTILUS_VIEW_POPUP_PATH_PLACES_MOVETO_ENTRIES_PLACEHOLDER "/selection/File Actions/MoveToMenu/PlacesMoveToPlaceHolder"
+#define NAUTILUS_VIEW_POPUP_PATH_PLACES_COPYTO_ENTRIES_PLACEHOLDER "/selection/File Actions/CopyToMenu/PlacesCopyToPlaceHolder"
+#define NAUTILUS_VIEW_MENU_PATH_PLACES_MOVETO_ENTRIES_PLACEHOLDER "/MenuBar/Edit/File Items Placeholder/MoveToMenu/PlacesMoveToPlaceHolder"
+#define NAUTILUS_VIEW_MENU_PATH_PLACES_COPYTO_ENTRIES_PLACEHOLDER "/MenuBar/Edit/File Items Placeholder/CopyToMenu/PlacesCopyToPlaceHolder"
 
 #define NAUTILUS_VIEW_POPUP_PATH_LOCATION			  "/location"
 
@@ -173,16 +186,17 @@ static int scripts_directory_uri_length;
 
 struct NautilusViewDetails
 {
-    NautilusWindow     *window;
-    NautilusWindowSlot *slot;
-    NautilusDirectory  *model;
-    NautilusFile       *directory_as_file;
-    NautilusFile       *location_popup_directory_as_file;
-    GdkEventButton     *location_popup_event;
-    GtkActionGroup     *dir_action_group;
-    unsigned int        dir_merge_id;
+    NautilusWindow       *window;
+    NautilusWindowSlot   *slot;
+    NautilusDirectory    *model;
+    NautilusFile         *directory_as_file;
+    NautilusFile         *location_popup_directory_as_file;
+    NautilusBookmarkList *bookmarks;
+    GdkEventButton       *location_popup_event;
+    GtkActionGroup       *dir_action_group;
+    unsigned int          dir_merge_id;
 
-    _Bool               supports_zooming;
+    _Bool                 supports_zooming;
 
     GList              *scripts_directory_list;
     GtkActionGroup     *scripts_action_group;
@@ -306,24 +320,25 @@ static void     clipboard_changed_callback                     (NautilusClipboar
                                                                 NautilusView      *view);
 static void     open_one_in_new_window                         (void               *data,
                                                                 void               *callback_data);
-static void     schedule_update_menus                          (NautilusView      *view);
-static void     remove_update_menus_timeout_callback           (NautilusView      *view);
+static void     schedule_update_menus                          (NautilusView       *view);
+static void     schedule_update_menus_callback                 (void               *callback_data);
+static void     remove_update_menus_timeout_callback           (NautilusView       *view);
 static void     schedule_update_status                          (NautilusView      *view);
-static void     remove_update_status_idle_callback             (NautilusView *view);
-static void     reset_update_interval                          (NautilusView      *view);
-static void     schedule_idle_display_of_pending_files         (NautilusView      *view);
-static void     unschedule_display_of_pending_files            (NautilusView      *view);
-static void     disconnect_model_handlers                      (NautilusView      *view);
-static void     metadata_for_directory_as_file_ready_callback  (NautilusFile         *file,
+static void     remove_update_status_idle_callback             (NautilusView       *view);
+static void     reset_update_interval                          (NautilusView       *view);
+static void     schedule_idle_display_of_pending_files         (NautilusView       *view);
+static void     unschedule_display_of_pending_files            (NautilusView       *view);
+static void     disconnect_model_handlers                      (NautilusView       *view);
+static void     metadata_for_directory_as_file_ready_callback  (NautilusFile       *file,
                                                                 void               *callback_data);
-static void     metadata_for_files_in_directory_ready_callback (NautilusDirectory    *directory,
-                                                                GList                *files,
+static void     metadata_for_files_in_directory_ready_callback (NautilusDirectory  *directory,
+                                                                GList              *files,
                                                                 void               *callback_data);
 static void     nautilus_view_trash_state_changed_callback     (NautilusTrashMonitor *trash,
-                                                                _Bool              state,
+                                                                _Bool               state,
                                                                 void               *callback_data);
-static void     nautilus_view_select_file                      (NautilusView      *view,
-                                                                NautilusFile         *file);
+static void     nautilus_view_select_file                      (NautilusView       *view,
+                                                                NautilusFile       *file);
 
 static void     update_templates_directory                     (NautilusView *view);
 static void     user_dirs_changed                              (NautilusView *view);
@@ -2594,7 +2609,7 @@ nautilus_view_init (NautilusView *view)
 
 	g_signal_connect_swapped (nautilus_preferences,
 				  "changed::" NAUTILUS_PREFERENCES_ENABLE_DELETE,
-				  G_CALLBACK (schedule_update_menus), view);
+				  G_CALLBACK (schedule_update_menus_callback), view);
 	g_signal_connect_swapped (nautilus_preferences,
 				  "changed::" NAUTILUS_PREFERENCES_CLICK_POLICY,
 				  G_CALLBACK(click_policy_changed_callback),
@@ -2711,7 +2726,7 @@ nautilus_view_finalize (GObject *object)
 	view = NAUTILUS_VIEW (object);
 
 	g_signal_handlers_disconnect_by_func (nautilus_preferences,
-					      schedule_update_menus, view);
+					      schedule_update_menus_callback, view);
 	g_signal_handlers_disconnect_by_func (nautilus_preferences,
 					      click_policy_changed_callback, view);
 	g_signal_handlers_disconnect_by_func (nautilus_preferences,
@@ -6453,7 +6468,7 @@ paste_clipboard_data (NautilusView *view,
 static void
 paste_clipboard_received_callback (GtkClipboard     *clipboard,
                                    GtkSelectionData *selection_data,
-                                   void              *data)
+                                   void             *data)
 {
 	NautilusView *view;
 	char *view_uri;
@@ -6482,14 +6497,15 @@ paste_into_clipboard_received_callback (GtkClipboard     *clipboard,
                                         void             *callback_data)
 {
 	PasteIntoData *data;
-	NautilusView *view;
+	NautilusView  *view;
 	char *directory_uri;
 
-	data = (PasteIntoData *) callback_data;
+	data = (PasteIntoData*)callback_data;
 
 	view = NAUTILUS_VIEW (data->view);
 
 	if (view->details->window != NULL) {
+
 		directory_uri = nautilus_file_get_activation_uri (data->target);
 
 		paste_clipboard_data (view, selection_data, directory_uri);
@@ -8968,6 +8984,7 @@ real_update_menus (NautilusView *view)
 	/* Broken into its own function just for convenience */
 	reset_open_with_menu (view, selection);
 	reset_extension_actions_menu (view, selection);
+	reset_move_copy_to_menu (view);
 
 	if (all_selected_items_in_trash (view)) {
 		label = _("_Delete Permanently");
@@ -9794,6 +9811,12 @@ real_using_manual_layout (NautilusView *view)
 	return FALSE;
 }
 
+static void
+schedule_update_menus_callback (gpointer callback_data)
+{
+    schedule_update_menus (NAUTILUS_VIEW (callback_data));
+}
+
 void
 nautilus_view_ignore_hidden_file_preferences (NautilusView *view)
 {
@@ -9989,10 +10012,9 @@ nautilus_view_set_property (GObject         *object,
 	}
 }
 
-
 _Bool
-nautilus_view_handle_scroll_event (NautilusView *directory_view,
-				   GdkEventScroll *event)
+nautilus_view_handle_scroll_event (NautilusView   *directory_view,
+                                   GdkEventScroll *event)
 {
 	static double total_delta_y = 0;
 	double delta_x, delta_y;
@@ -10127,9 +10149,9 @@ nautilus_view_class_init (NautilusViewClass *klass)
 	klass->start_renaming_file          = start_renaming_file;
 	klass->get_backing_uri              = real_get_backing_uri;
 	klass->using_manual_layout          = real_using_manual_layout;
-        klass->merge_menus                  = real_merge_menus;
-        klass->unmerge_menus                = real_unmerge_menus;
-        klass->update_menus                 = real_update_menus;
+    klass->merge_menus                  = real_merge_menus;
+    klass->unmerge_menus                = real_unmerge_menus;
+    klass->update_menus                 = real_update_menus;
 	klass->trash                        = real_trash;
 	klass->delete                       = real_delete;
 
