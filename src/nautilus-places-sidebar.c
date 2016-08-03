@@ -694,7 +694,7 @@ update_places (NautilusPlacesSidebar *sidebar)
 	for (index = 0; index < bookmark_count; ++index) {
 		bookmark = nautilus_bookmark_list_item_at (sidebar->bookmarks, index);
 
-		if (nautilus_bookmark_uri_known_not_to_exist (bookmark)) {
+		if (nautilus_bookmark_uri_get_exists (bookmark)) {
 			continue;
 		}
 

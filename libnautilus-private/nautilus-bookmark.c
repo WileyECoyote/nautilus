@@ -207,7 +207,7 @@ nautilus_bookmark_set_icon_to_default (NautilusBookmark *bookmark)
 		g_free (uri);
 	}
 
-	if (nautilus_bookmark_uri_known_not_to_exist (bookmark)) {
+	if (nautilus_bookmark_uri_get_exists (bookmark)) {
 		DEBUG ("%s: file does not exist, add emblem", nautilus_bookmark_get_name (bookmark));
 
 		icon = g_themed_icon_new (GTK_STOCK_DIALOG_WARNING);
@@ -254,7 +254,7 @@ nautilus_bookmark_connect_file (NautilusBookmark *bookmark)
 		return;
 	}
 
-	if (!nautilus_bookmark_uri_known_not_to_exist (bookmark)) {
+	if (!nautilus_bookmark_uri_get_exists (bookmark)) {
 		DEBUG ("%s: creating file", nautilus_bookmark_get_name (bookmark));
 
 		bookmark->details->file = nautilus_file_get (bookmark->details->location);
@@ -647,7 +647,7 @@ nautilus_bookmark_menu_item_new (NautilusBookmark *bookmark)
 }
 
 _Bool
-nautilus_bookmark_uri_known_not_to_exist (NautilusBookmark *bookmark)
+nautilus_bookmark_uri_get_exists (NautilusBookmark *bookmark)
 {
 	char *path_name;
 	_Bool exists;

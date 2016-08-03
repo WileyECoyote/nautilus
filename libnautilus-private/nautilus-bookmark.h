@@ -63,30 +63,30 @@ struct NautilusBookmarkClass {
 
 typedef struct NautilusBookmarkClass NautilusBookmarkClass;
 
-GType                 nautilus_bookmark_get_type               (void);
-NautilusBookmark *    nautilus_bookmark_new                    (GFile *location,
-                                                                const char *custom_name,
-                                                                GIcon *icon);
-NautilusBookmark *    nautilus_bookmark_copy                   (NautilusBookmark      *bookmark);
-const char *          nautilus_bookmark_get_name               (NautilusBookmark      *bookmark);
-GFile *               nautilus_bookmark_get_location           (NautilusBookmark      *bookmark);
-char *                nautilus_bookmark_get_uri                (NautilusBookmark      *bookmark);
-GIcon *               nautilus_bookmark_get_icon               (NautilusBookmark      *bookmark);
-_Bool	      nautilus_bookmark_get_has_custom_name    (NautilusBookmark      *bookmark);
-void                  nautilus_bookmark_set_custom_name        (NautilusBookmark      *bookmark,
-								const char            *new_name);
-_Bool              nautilus_bookmark_uri_known_not_to_exist (NautilusBookmark      *bookmark);
-int                   nautilus_bookmark_compare_with           (gconstpointer          a,
-								gconstpointer          b);
-int                   nautilus_bookmark_compare_uris           (gconstpointer          a,
-								gconstpointer          b);
+GType              nautilus_bookmark_get_type               (void);
+NautilusBookmark  *nautilus_bookmark_new                    (GFile               *location,
+                                                             const char          *custom_name,
+                                                             GIcon               *icon);
+NautilusBookmark  *nautilus_bookmark_copy                   (NautilusBookmark    *bookmark);
+const char        *nautilus_bookmark_get_name               (NautilusBookmark    *bookmark);
+GFile             *nautilus_bookmark_get_location           (NautilusBookmark    *bookmark);
+char              *nautilus_bookmark_get_uri                (NautilusBookmark    *bookmark);
+GIcon             *nautilus_bookmark_get_icon               (NautilusBookmark    *bookmark);
+_Bool              nautilus_bookmark_get_has_custom_name    (NautilusBookmark    *bookmark);
+void               nautilus_bookmark_set_custom_name        (NautilusBookmark    *bookmark,
+                                                             const char          *new_name);
+_Bool              nautilus_bookmark_uri_get_exists         (NautilusBookmark    *bookmark);
+int                nautilus_bookmark_compare_with           (const void          *a,
+                                                             const void          *b);
+int                nautilus_bookmark_compare_uris           (const void          *a,
+                                                             const void          *b);
 
-void                  nautilus_bookmark_set_scroll_pos         (NautilusBookmark      *bookmark,
-								const char            *uri);
-char *                nautilus_bookmark_get_scroll_pos         (NautilusBookmark      *bookmark);
+void               nautilus_bookmark_set_scroll_pos         (NautilusBookmark    *bookmark,
+                                                             const char          *uri);
+char              *nautilus_bookmark_get_scroll_pos         (NautilusBookmark    *bookmark);
 
 
 /* Helper functions for displaying bookmarks */
-GtkWidget *           nautilus_bookmark_menu_item_new          (NautilusBookmark      *bookmark);
+GtkWidget         *nautilus_bookmark_menu_item_new          (NautilusBookmark    *bookmark);
 
 #endif /* NAUTILUS_BOOKMARK_H */

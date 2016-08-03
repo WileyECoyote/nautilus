@@ -1,5 +1,4 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
-
 /*
  * Nautilus
  *
@@ -270,7 +269,7 @@ activate_bookmark_in_menu_item (GtkAction *action, gpointer user_data)
 
         holder = (BookmarkHolder *)user_data;
 
-	if (nautilus_bookmark_uri_known_not_to_exist (holder->bookmark)) {
+	if (nautilus_bookmark_uri_get_exists (holder->bookmark)) {
 		holder->failed_callback (holder->window, holder->bookmark);
 	} else {
 	        location = nautilus_bookmark_get_location (holder->bookmark);
@@ -384,7 +383,7 @@ update_bookmarks (NautilusWindow *window)
 	for (index = 0; index < bookmark_count; ++index) {
 		bookmark = nautilus_bookmark_list_item_at (bookmarks, index);
 
-		if (nautilus_bookmark_uri_known_not_to_exist (bookmark)) {
+		if (nautilus_bookmark_uri_get_exists (bookmark)) {
 			continue;
 		}
 

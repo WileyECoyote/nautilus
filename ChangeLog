@@ -1,3 +1,8 @@
+2016-08-03 Wiley E. Hill <wileyhill@gmail.com>
+
+    * libnautilus-private/nautilus-bookmark.c: Rename nautilus_bookmark_uri
+      _known_not_to_exist -> nautilus_bookmark_uri_get_exists.
+
 2016-07-31 Wiley E. Hill <wileyhill@gmail.com>
 
     * src/nautilus-view.c: Replace g_hash_table_foreach_remove with g_hash
