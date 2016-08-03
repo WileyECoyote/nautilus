@@ -7418,11 +7418,13 @@ file_list_all_are_folders (GList *file_list)
   for (l = file_list; l != NULL; l = l->next) {
 
     file = NAUTILUS_FILE (l->data);
+
 #if HAVE_GNOME_DESKTOP
     if (nautilus_file_is_nautilus_link (file) && !NAUTILUS_IS_DESKTOP_ICON_FILE (file)) {
 #else
     if (nautilus_file_is_nautilus_link (file)) {
 #endif
+
       if (nautilus_file_is_launcher (file)) {
         return FALSE;
       }
@@ -9200,12 +9202,6 @@ nautilus_view_select_file (NautilusView *view, NautilusFile *file)
 	nautilus_view_call_set_selection (view, &file_list);
 }
 
-static _Bool
-remove_all (void * key, void * value, void *callback_data)
-{
-	return TRUE;
-}
-
 /**
  * nautilus_view_stop_loading:
  *
@@ -9228,7 +9224,7 @@ nautilus_view_stop_loading (NautilusView *view)
 	file_and_directory_list_free (view->details->new_changed_files);
 	view->details->new_changed_files = NULL;
 
-	g_hash_table_foreach_remove (view->details->non_ready_files, (GHRFunc)remove_all, NULL);
+	g_hash_table_remove_all (view->details->non_ready_files);
 
 	file_and_directory_list_free (view->details->old_added_files);
 	view->details->old_added_files = NULL;

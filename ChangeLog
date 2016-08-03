@@ -1,3 +1,8 @@
+2016-07-31 Wiley E. Hill <wileyhill@gmail.com>
+
+    * src/nautilus-view.c: Replace g_hash_table_foreach_remove with g_hash
+      _table_remove_all and eliminate callback remove_all.
+
 2016-07-25 Wiley E. Hill <wileyhill@gmail.com>
 
     * libnautilus-private/nautilus-file.c: Make nautilus_file_peek_display_name
