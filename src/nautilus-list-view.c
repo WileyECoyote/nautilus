@@ -2566,32 +2566,32 @@ list_view_file_changed (NautilusView      *view,
                         NautilusFile      *file,
                         NautilusDirectory *directory)
 {
-    NautilusListView *list_view;
-    GtkTreeIter iter;
-    GtkTreePath *file_path;
+  NautilusListView *list_view;
+  GtkTreeIter iter;
+  GtkTreePath *file_path;
 
-    list_view = NAUTILUS_LIST_VIEW (view);
+  list_view = NAUTILUS_LIST_VIEW (view);
 
-    nautilus_list_model_file_changed (ListModel, file, directory);
+  nautilus_list_model_file_changed (ListModel, file, directory);
 
-    if (list_view->details->renaming_file != NULL &&
-        file == list_view->details->renaming_file &&
-        list_view->details->rename_done) {
-        /* This is (probably) the result of the rename operation, and
-         * the tree-view changes above could have resorted the list, so
-         * scroll to the new position
-         */
-        if (nautilus_list_model_get_tree_iter_from_file (ListModel, file, directory, &iter)) {
-            file_path = gtk_tree_model_get_path (GTK_TREE_MODEL (ListModel), &iter);
-            gtk_tree_view_scroll_to_cell (ListTree,
-                                          file_path, NULL,
-                                          FALSE, 0.0, 0.0);
-            gtk_tree_path_free (file_path);
-        }
-
-        nautilus_file_unref (list_view->details->renaming_file);
-        list_view->details->renaming_file = NULL;
+  if (list_view->details->renaming_file != NULL &&
+      file == list_view->details->renaming_file &&
+      list_view->details->rename_done) {
+    /* This is (probably) the result of the rename operation, and
+     * the tree-view changes above could have resorted the list, so
+     * scroll to the new position
+     */
+    if (nautilus_list_model_get_tree_iter_from_file (ListModel, file, directory, &iter)) {
+      file_path = gtk_tree_model_get_path (GTK_TREE_MODEL (ListModel), &iter);
+      gtk_tree_view_scroll_to_cell (ListTree,
+                                    file_path, NULL,
+                                    FALSE, 0.0, 0.0);
+      gtk_tree_path_free (file_path);
     }
+
+    nautilus_file_unref (list_view->details->renaming_file);
+    list_view->details->renaming_file = NULL;
+  }
 }
 
 typedef struct {
@@ -2871,21 +2871,22 @@ list_view_end_file_changes (NautilusView *view)
 static void
 list_view_remove_file (NautilusView *view, NautilusFile *file, NautilusDirectory *directory)
 {
-	GtkTreePath *path;
-	GtkTreePath *file_path;
-	GtkTreeIter iter;
-	GtkTreeIter temp_iter;
-	GtkTreeRowReference* row_reference;
-	NautilusListView *list_view;
-	GtkTreeModel* tree_model;
-	GtkTreeSelection *selection;
+	NautilusListView    *list_view;
+	GtkTreePath         *file_path;
+	GtkTreePath         *path;
+	GtkTreeRowReference *row_reference;
+	GtkTreeSelection    *selection;
+	GtkTreeModel        *tree_model;
+	GtkTreeIter          iter;
+	GtkTreeIter          temp_iter;
 
-	path = NULL;
+	path          = NULL;
 	row_reference = NULL;
-	list_view = NAUTILUS_LIST_VIEW (view);
-	tree_model = GTK_TREE_MODEL(ListModel);
+	list_view     = NAUTILUS_LIST_VIEW (view);
+	tree_model    = GTK_TREE_MODEL(ListModel);
 
 	if (nautilus_list_model_get_tree_iter_from_file (ListModel, file, directory, &iter)) {
+
 		selection = gtk_tree_view_get_selection (ListTree);
 		file_path = gtk_tree_model_get_path (tree_model, &iter);
 

@@ -43,8 +43,8 @@ void                  eel_gtk_window_set_initial_geometry             (GtkWindow
                                                                        guint                 height);
 void                  eel_gtk_window_set_initial_geometry_from_string (GtkWindow            *window,
                                                                        const char           *geometry_string,
-                                                                       guint                 minimum_width,
-                                                                       guint                 minimum_height,
+                                                                       unsigned int          minimum_width,
+                                                                       unsigned int          minimum_height,
                                                                        gboolean              ignore_position);
 char *                eel_gtk_window_get_geometry_string              (GtkWindow            *window);
 
@@ -63,11 +63,11 @@ GtkMenuItem *         eel_gtk_menu_insert_separator                   (GtkMenu  
 void                  eel_gtk_label_make_bold                         (GtkLabel             *label);
 
 /* GtkTreeView */
-void                  eel_gtk_tree_view_set_activate_on_single_click  (GtkTreeView               *tree_view,
-								       gboolean                   should_activate);
+void                  eel_gtk_tree_view_set_activate_on_single_click  (GtkTreeView          *tree_view,
+                                                                       gboolean              should_activate);
 
 /* GtkMessageDialog */
-void                  eel_gtk_message_dialog_set_details_label        (GtkMessageDialog          *dialog,
-								       const gchar               *details_text);
+void                  eel_gtk_message_dialog_set_details_label        (GtkMessageDialog     *dialog,
+                                                                       const char           *details_text);
 
 #endif /* EEL_GTK_EXTENSIONS_H */
