@@ -1,0 +1,5 @@
+2018-11-14 Wiley E. Hill <wileyhill@gmail.com>
+
+    * build-tools: Add subdirectory to declutter $top_srcdir.
+
+    * configure.in: Add AC_CONFIG_AUX_DIR = build-tools/.
