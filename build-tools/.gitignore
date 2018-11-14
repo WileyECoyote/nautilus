@@ -1,0 +1,16 @@
+*~
+*.orig
+compile
+config.guess
+config.rpath
+config.sub
+depcomp
+install-sh
+ltmain.sh
+mdate-sh
+nohup.out
+texinfo.tex
+ylwrap
+test-driver
+ar-lib
+mkinstalldirs

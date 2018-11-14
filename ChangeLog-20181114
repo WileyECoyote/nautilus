@@ -3,3 +3,5 @@
     * build-tools: Add subdirectory to declutter $top_srcdir.
 
     * configure.in: Add AC_CONFIG_AUX_DIR = build-tools/.
+
+    * build-tools/.gitignore: Add git ignore file.
